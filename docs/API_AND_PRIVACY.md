@@ -1,28 +1,24 @@
 # API and privacy design
 
 ## Official source
-Trafikverket's open traffic information API is available to private individuals and companies. Registration, acceptance of the API licence and email verification are required for full access. Read the current official documentation before release:
-- https://www.trafikverket.se/e-tjanster/trafikverkets-oppna-api-for-trafikinformation/
-- https://www.trafikverket.se/e-tjanster/hamta-data-fran-trafikverket/
-- https://api.trafikinfo.trafikverket.se/
+Use Trafikverket's open traffic information API v2 (`https://api.trafikinfo.trafikverket.se/v2/data.json`). Camera metadata is queried as `objecttype="Camera"`, `schemaversion="1"`, namespace `road.infrastructure`. The current query includes active cameras only and requests `Id`, `Name`, `Description`, `Type`, `PhotoUrl`, `PhotoTime`, `ModifiedTime`, `Status`, `Active`, `Deleted`, `Location`, `Counties` and `Geometry.WGS84`.
 
-## Camera model
-Store/render only fields returned by the current Camera schema, for example camera identity, name/description, type, road/location, county, coordinates, image URL and source modification/image time when available. Validate the exact field names against the current schema before implementation. Do not assume all cameras expose all optional fields.
+Registration, licence acceptance and email verification are required for full API access. Official information: https://www.trafikverket.se/e-tjanster/trafikverkets-oppna-api-for-trafikinformation/ and https://www.trafikverket.se/e-tjanster/hamta-data-fran-trafikverket/.
 
 ## API-key handling
-- API key only in a server-side secret binding (Cloudflare Worker secret).
-- Never commit secrets, put them in Vite variables, or embed them in an APK.
-- Proxy only the required Camera query, validate parameters, apply response caching and rate limiting.
-- Use the official API and current licence; no scraping of access-restricted systems.
+- Store API key only as Cloudflare Worker secret `TRAFIKVERKET_API_KEY`.
+- Never commit secrets or put them in the APK/frontend bundle.
+- Proxy only the required Camera query; cache metadata briefly and do not archive image binaries.
+- Respect current API licence and traffic limits.
 
 ## Privacy
-- No account required for read-only camera browsing.
-- Favorites and recent camera list stored locally by default.
-- Location permission optional and only used when the user taps "near me".
-- Do not collect plate numbers, identify individuals, or infer identities from camera imagery.
-- No background location tracking.
+- No account required for read-only browsing.
+- Favorites stored locally by default.
+- Location permission optional and only used when a user explicitly chooses nearby cameras.
+- No plate recognition, person identification or background location tracking.
 
 ## Reliability
-- Label image time/source and show stale/unavailable state.
-- Do not promise continuous live video: the source may provide periodically refreshed still images.
-- Avoid mirroring/storing camera images unless the source terms explicitly permit it.
+- Label source and image timestamp.
+- Mark stale or missing images clearly.
+- Camera feeds are periodically refreshed still images, not guaranteed live video.
+- Distinguish traffic-flow cameras from road-condition cameras.
