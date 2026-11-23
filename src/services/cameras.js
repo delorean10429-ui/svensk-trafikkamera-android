@@ -35,7 +35,7 @@ export async function fetchCameras({ signal } = {}) {
   });
   const payload = await readJson(response, 'Kamerahämtning');
   if (!Array.isArray(payload.cameras)) {
-    throw new Error('Kamera-API:t svarade, men saknar en giltig kamer lista.');
+    throw new Error('Kamera-API:t svarade, men innehåller ingen giltig lista med kameror.');
   }
 
   return {
