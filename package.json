@@ -1,7 +1,7 @@
 {
   "name": "svensk-trafikkamera-android",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "scripts": {"dev": "vite --host 0.0.0.0", "build": "vite build", "preview": "vite preview --host 0.0.0.0", "test": "node --test"},
   "dependencies": {"@capacitor/android": "^7.4.3", "@capacitor/core": "^7.4.3", "@capacitor/status-bar": "^7.0.3", "leaflet": "^1.9.4", "lucide-react": "^0.468.0", "react": "^19.1.0", "react-dom": "^19.1.0", "react-leaflet": "^5.0.0"},
