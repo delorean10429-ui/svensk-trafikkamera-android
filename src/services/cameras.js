@@ -24,7 +24,7 @@ export async function fetchCameras({ signal } = {}) {
   });
   const health = await readJson(healthResponse, 'API-kontroll');
   if (health.ok !== true) {
-    throw new Error('Kamera-API:t svarade men rapporterade att tjänsten inte är redo.');
+    throw new Error('Kamera-API:t svarade men rapporterade att tjÃ¤nsten inte Ã¤r redo.');
   }
 
   const response = await fetch(`${API_BASE}/api/cameras`, {
@@ -33,15 +33,16 @@ export async function fetchCameras({ signal } = {}) {
     signal,
     cache: 'no-store',
   });
-  const payload = await readJson(response, 'Kamerahämtning');
+  const payload = await readJson(response, 'KamerahÃ¤mtning');
   if (!Array.isArray(payload.cameras)) {
-    throw new Error('Kamera-API:t svarade, men innehåller ingen giltig lista med kameror.');
+    throw new Error('Kamera-API:t svarade, men innehÃ¥ller ingen giltig lista med kameror.');
   }
 
   return {
     cameras: payload.cameras,
     source: payload.source || 'Trafikverket',
     fetchedAt: payload.fetchedAt || new Date().toISOString(),
+    warnings: Array.isArray(payload.warnings) ? payload.warnings : [],
     counts: payload.counts || {
       traffic: payload.cameras.filter((camera) => camera.cameraType !== 'safety').length,
       safety: payload.cameras.filter((camera) => camera.cameraType === 'safety').length,
