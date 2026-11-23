@@ -120,11 +120,11 @@ export default function App() {
       {selected && <section className="panel detail"><div className="detail-head"><div><h3>{selected.name}</h3><p className="muted">{[selected.road,selected.municipality,selected.county].filter(Boolean).join(' Â· ')}</p></div><button className="field" onClick={() => setSelected(null)}><X size={17}/></button></div>{selected.image ? <img className="detail-image" src={imageUrl(selected)} alt={'Kamerabild ' + selected.name}/> : <div className="notice">Kamerabild visas nÃ¤r Trafikverkets API tillhandahÃ¥ller en bildadress.</div>}<p className="muted">Senaste bild/uppdatering: {formatTime(selected.updatedAt)} Â· KÃ¤lla: Trafikverket</p></section>}
       <div className="notice"><strong>DatakÃ¤lla:</strong> {source} Â· Senaste hÃ¤mtning: {formatTime(fetchedAt)}. Bilder Ã¤r periodiskt uppdaterade stillbilder, inte garanterad livevideo. FÃ¶lj alltid skyltning och trafikregler.</div>
       <footer className="footer">
-        <div>Svensk Trafikkamera · Öppen trafikinformation · Kartdata © OpenStreetMap-bidragsgivare</div>
+        <div>Svensk Trafikkamera &middot; &Ouml;ppen trafikinformation &middot; Kartdata &copy; OpenStreetMap-bidragsgivare</div>
         <div className="thanks">
           <strong>Tack till Reine!</strong>
-          <span>Ditt bidrag hjälper oss att fortsätta utveckla Svensk Trafikkamera.</span>
-          <a href="https://www.paypal.me/ReineGahnstrom" target="_blank" rel="noopener noreferrer">Stöd fortsatt utveckling via PayPal</a>
+          <span>Ditt bidrag hj&auml;lper oss att forts&auml;tta utveckla Svensk Trafikkamera.</span>
+          <a href="https://www.paypal.me/ReineGahnstrom" target="_blank" rel="noopener noreferrer">St&ouml;d fortsatt utveckling via PayPal</a>
         </div>
       </footer>
     </div>
