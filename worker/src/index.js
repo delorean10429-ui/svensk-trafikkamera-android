@@ -28,7 +28,12 @@ function parsePoint(value) {
 }
 
 function countyInfo(camera) {
-  const codes = Array.isArray(camera.CountyNo) ? camera.CountyNo : camera.CountyNo == null ? [] : [camera.CountyNo];
+  const rawCodes = camera.Counties ?? camera.CountyNo ?? [];
+  const codes = (Array.isArray(rawCodes) ? rawCodes : [rawCodes]).flatMap(v => {
+    if (v == null) return [];
+    if (typeof v === "object") return [v.Code ?? v.CountyNo ?? v.Value ?? v.Name].filter(x => x != null);
+    return [v];
+  });
   return {
     county: codes.map(c => countyNames[String(c)]).filter(Boolean).join(", "),
     countyCodes: codes.map(String)
@@ -87,7 +92,8 @@ function normalizeSafetyCamera(camera) {
 
 async function queryTrafikverket(apiKey, objectType, includes) {
   const includeXml = includes.map(name => "<INCLUDE>" + name + "</INCLUDE>").join("");
-  const xml = `<REQUEST><LOGIN authenticationkey="${xmlEscape(apiKey)}"/><QUERY objecttype="${objectType}" schemaversion="1" namespace="road.infrastructure" limit="10000"><FILTER><EQ name="Deleted" value="false"/></FILTER>${includeXml}</QUERY></REQUEST>`;
+  const activeFilter = objectType === "Camera" ? `<EQ name="Active" value="true"/>` : "";
+  const xml = `<REQUEST><LOGIN authenticationkey="${xmlEscape(apiKey)}"/><QUERY objecttype="${objectType}" schemaversion="1" namespace="road.infrastructure" limit="10000"><FILTER><AND><EQ name="Deleted" value="false"/>${activeFilter}</AND></FILTER>${includeXml}</QUERY></REQUEST>`;
   const response = await fetch("https://api.trafikinfo.trafikverket.se/v2/data.json", {
     method: "POST",
     headers: { "content-type": "text/xml; charset=utf-8", accept: "application/json" },
@@ -108,16 +114,20 @@ export default {
     if (!env.TRAFIKVERKET_API_KEY) return json({ error: "Trafikverket API key is not configured. Add Worker secret TRAFIKVERKET_API_KEY." }, 503);
 
     try {
-      const [trafficRaw, safetyRaw] = await Promise.all([
-        queryTrafikverket(env.TRAFIKVERKET_API_KEY, "Camera", [
+      const trafficRaw = await queryTrafikverket(env.TRAFIKVERKET_API_KEY, "Camera", [
           "Id","Name","Description","Direction","Type","PhotoUrl","PhotoUrlThumbnail",
           "PhotoUrlFullsize","PhotoTime","ModifiedTime","Status","Active","Deleted",
-          "Location","RoadNumber","CountyNo","Geometry.WGS84"
-        ]),
-        queryTrafikverket(env.TRAFIKVERKET_API_KEY, "TrafficSafetyCamera", [
-          "Id","Name","Bearing","RoadNumber","CountyNo","Deleted","ModifiedTime","Geometry.WGS84"
-        ])
+          "Location","RoadNumber","Counties","Geometry.WGS84"
       ]);
+      let safetyRaw = [];
+      let safetyWarning = null;
+      try {
+        safetyRaw = await queryTrafikverket(env.TRAFIKVERKET_API_KEY, "TrafficSafetyCamera", [
+          "Id","Name","Bearing","RoadNumber","Counties","Deleted","ModifiedTime","Geometry.WGS84"
+        ]);
+      } catch (safetyError) {
+        safetyWarning = "Fartkameror kunde inte hämtas: " + String(safetyError?.message || safetyError);
+      }
       const traffic = trafficRaw.map(normalizeCamera).filter(c => c.id && c.active && c.lat !== null && c.lon !== null);
       const safety = safetyRaw.map(normalizeSafetyCamera).filter(c => c.id && c.active && c.lat !== null && c.lon !== null);
       const cameras = [...traffic, ...safety];
@@ -126,6 +136,7 @@ export default {
         cameras,
         count: cameras.length,
         counts: { traffic: traffic.length, safety: safety.length },
+        warnings: safetyWarning ? [safetyWarning] : [],
         fetchedAt: new Date().toISOString()
       });
     } catch (error) {
