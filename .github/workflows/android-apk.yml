@@ -7,7 +7,7 @@ on:
       - 'src/**'
       - 'worker/**'
       - 'package.json'
-      - 'capacitor.config.ts'
+      - 'capacitor.config.*'
       - '.github/workflows/android-apk.yml'
 permissions:
   contents: read
