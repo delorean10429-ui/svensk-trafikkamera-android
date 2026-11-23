@@ -3,10 +3,5 @@
   "appName": "Svensk Trafikkamera",
   "webDir": "dist",
   "bundledWebRuntime": false,
-  "plugins": {
-    "StatusBar": {
-      "backgroundColor": "#101820",
-      "style": "DARK"
-    }
-  }
+  "plugins": {"StatusBar": {"backgroundColor": "#101820", "style": "DARK"}}
 }
