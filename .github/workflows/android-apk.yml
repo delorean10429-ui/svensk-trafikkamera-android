@@ -7,7 +7,6 @@ on:
       - 'src/**'
       - 'worker/**'
       - 'package.json'
-      - 'package-lock.json'
       - 'capacitor.config.ts'
       - '.github/workflows/android-apk.yml'
 permissions:
@@ -20,7 +19,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
