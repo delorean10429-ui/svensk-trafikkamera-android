@@ -21,16 +21,17 @@ function coordinates(value) {
 }
 function cameraRow(camera) {
   const geo = coordinates(camera.Geometry?.WGS84);
-  const counties = Array.isArray(camera.Counties) ? camera.Counties : [];
-  const countyCode = counties.length ? String(counties[0]) : (camera.CountyNo ? String(camera.CountyNo) : '');
+  const rawCodes = camera.CountyNo;
+  const codes = Array.isArray(rawCodes) ? rawCodes : rawCodes == null ? [] : [rawCodes];
+  const counties = codes.map(code => countyNames[String(code)]).filter(Boolean);
   return {
     id: String(camera.Id || ''),
     name: camera.Name || camera.Description || 'Trafikkamera',
     description: camera.Description || '',
-    road: camera.Location || '',
+    road: camera.Location || camera.RoadNumber || '',
     municipality: '',
-    county: countyNames[countyCode] || (countyCode ? 'Län ' + countyCode : ''),
-    type: camera.Type || 'Trafikflödeskamera',
+    county: counties.join(', '),
+    type: camera.Type || 'TrafficFlowCamera',
     image: camera.PhotoUrl || null,
     updatedAt: camera.PhotoTime || camera.ModifiedTime || null,
     status: camera.Status || '',
@@ -45,7 +46,7 @@ export default {
     if (url.pathname === '/health') return reply({ ok: true, service: 'svensk-trafikkamera-api', time: new Date().toISOString() });
     if (url.pathname !== '/api/cameras' && url.pathname !== '/cameras') return reply({ error: 'Not found' }, 404);
     if (!env.TRAFIKVERKET_API_KEY) return reply({ error: 'Trafikverket API key is not configured. Add Worker secret TRAFIKVERKET_API_KEY.' }, 503);
-    const xml = '<REQUEST><LOGIN authenticationkey="' + env.TRAFIKVERKET_API_KEY + '"/><QUERY objecttype="Camera" schemaversion="1" namespace="road.infrastructure" limit="2000"><FILTER><AND><EQ name="Active" value="true"/><EQ name="Deleted" value="false"/></AND></FILTER><INCLUDE>Id</INCLUDE><INCLUDE>Name</INCLUDE><INCLUDE>Description</INCLUDE><INCLUDE>Type</INCLUDE><INCLUDE>PhotoUrl</INCLUDE><INCLUDE>PhotoTime</INCLUDE><INCLUDE>ModifiedTime</INCLUDE><INCLUDE>Status</INCLUDE><INCLUDE>Active</INCLUDE><INCLUDE>Deleted</INCLUDE><INCLUDE>Location</INCLUDE><INCLUDE>Counties</INCLUDE><INCLUDE>Geometry.WGS84</INCLUDE></QUERY></REQUEST>';
+    const xml = '<REQUEST><LOGIN authenticationkey="' + env.TRAFIKVERKET_API_KEY + '"/><QUERY objecttype="Camera" schemaversion="1" namespace="road.infrastructure" limit="2000"><FILTER><AND><EQ name="Active" value="true"/><EQ name="Deleted" value="false"/></AND></FILTER><INCLUDE>Id</INCLUDE><INCLUDE>Name</INCLUDE><INCLUDE>Description</INCLUDE><INCLUDE>Direction</INCLUDE><INCLUDE>Type</INCLUDE><INCLUDE>PhotoUrl</INCLUDE><INCLUDE>PhotoTime</INCLUDE><INCLUDE>ModifiedTime</INCLUDE><INCLUDE>Status</INCLUDE><INCLUDE>Active</INCLUDE><INCLUDE>Deleted</INCLUDE><INCLUDE>Location</INCLUDE><INCLUDE>RoadNumber</INCLUDE><INCLUDE>CountyNo</INCLUDE><INCLUDE>Geometry.WGS84</INCLUDE></QUERY></REQUEST>';
     try {
       const upstream = await fetch('https://api.trafikinfo.trafikverket.se/v2/data.json', {
         method: 'POST',
